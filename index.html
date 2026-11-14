@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f5f7f4" />
+    <title>くらし電力 | 記録と年間比較</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <main class="page">
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="くらし電力">
+          <span class="brand-mark" aria-hidden="true">⚡</span>
+          <span>くらし電力<small>ENERGY JOURNAL</small></span>
+        </a>
+        <span class="local-badge"><span></span>データはこのブラウザー内に保存</span>
+      </header>
+
+      <section class="intro">
+        <div>
+          <p class="eyebrow">YOUR ENERGY, YOUR RECORD</p>
+          <h1>わが家の電気を、<span>記録して比べる。</span></h1>
+          <p class="intro-copy">月ごとの数値を入力するか、これまでのCSV・JSONを読み込んで、わが家の電気の使い方を振り返りましょう。</p>
+        </div>
+        <div class="year-picker">
+          <label for="year-select">比較する年</label>
+          <select id="year-select" aria-label="比較する年"></select>
+        </div>
+      </section>
+
+      <section class="summary-section" aria-labelledby="summary-title">
+        <div class="section-heading">
+          <div><p class="eyebrow">YEAR AT A GLANCE</p><h2 id="summary-title">年間サマリー</h2></div>
+          <p id="comparison-caption" class="section-note">前年の同じ期間と比較</p>
+        </div>
+        <div class="metric-grid" id="metric-grid" aria-live="polite"></div>
+        <section class="solar-impact" aria-labelledby="solar-impact-title">
+          <div class="subsection-heading">
+            <div><p class="eyebrow">SOLAR IMPACT</p><h3 id="solar-impact-title">太陽光発電による効果</h3></div>
+            <p class="section-note">平日昼・休日単価で試算。基本料金を除いた概算です</p>
+          </div>
+          <div class="impact-grid" id="solar-impact-grid" aria-live="polite"></div>
+        </section>
+        <section class="all-time-summary" aria-labelledby="all-time-title">
+          <div class="subsection-heading">
+            <div><p class="eyebrow">ALL-TIME TOTAL</p><h3 id="all-time-title">全期間サマリー</h3></div>
+            <p id="all-time-caption" class="section-note"></p>
+          </div>
+          <div class="metric-grid all-time-grid" id="all-time-grid" aria-live="polite"></div>
+        </section>
+      </section>
+
+      <section class="panel chart-panel" aria-labelledby="chart-title">
+        <div class="panel-heading">
+          <div><p class="eyebrow">YEAR-OVER-YEAR</p><h2 id="chart-title">月ごとの比較</h2></div>
+          <label class="metric-picker">表示項目
+            <select id="metric-select" aria-label="グラフの表示項目">
+              <option value="solarKwh">太陽光発電量</option>
+              <option value="usageKwh">家庭消費量</option>
+              <option value="soldKwh">売電量</option>
+              <option value="boughtKwh">買電量</option>
+              <option value="billYen">電気料金</option>
+              <option value="revenueYen">売電収入</option>
+            </select>
+          </label>
+        </div>
+        <div class="chart-legend"><span><i class="legend-dot current-dot"></i><span id="current-year-legend"></span></span><span><i class="legend-dot previous-dot"></i><span id="previous-year-legend"></span></span></div>
+        <div class="chart-wrap">
+          <div class="y-axis" id="y-axis-labels" aria-hidden="true"></div>
+          <div class="plot-area">
+            <div class="grid-lines" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+            <canvas id="year-chart" role="img" aria-label="月ごとの前年比較"></canvas>
+            <div class="x-axis" aria-hidden="true"><span>1月</span><span>3月</span><span>5月</span><span>7月</span><span>9月</span><span>11月</span></div>
+          </div>
+        </div>
+        <p id="chart-empty" class="chart-empty" hidden>比較できるデータがありません。記録を入力するか、ファイルを読み込んでください。</p>
+      </section>
+
+      <div class="workspace-grid">
+        <section class="panel entry-panel" aria-labelledby="entry-title">
+          <div class="panel-heading">
+            <div><p class="eyebrow">MONTHLY ENTRY</p><h2 id="entry-title">月ごとの電気データを入力</h2></div>
+            <span class="optional-note">数値が分かる項目だけ入力</span>
+          </div>
+          <form id="entry-form">
+            <div class="field date-field"><label for="record-date">対象月 <span class="required">必須</span></label><input id="record-date" name="date" type="month" required /></div>
+            <div class="form-grid">
+              <div class="field"><label for="solarKwh"><span class="field-icon solar-icon" aria-hidden="true">☀️</span>太陽光発電 <span>kWh</span></label><input id="solarKwh" name="solarKwh" type="number" min="0" step="0.01" inputmode="decimal" placeholder="例 18.6" /></div>
+              <div class="field"><label for="soldKwh"><span class="field-icon sold-icon" aria-hidden="true">📤</span>売電量 <span>kWh</span></label><input id="soldKwh" name="soldKwh" type="number" min="0" step="0.01" inputmode="decimal" placeholder="例 6.8" /></div>
+              <div class="field"><label for="boughtKwh"><span class="field-icon bought-icon" aria-hidden="true">📥</span>買電量 <span>kWh</span></label><input id="boughtKwh" name="boughtKwh" type="number" min="0" step="0.01" inputmode="decimal" placeholder="例 2.4" /></div>
+              <div class="field calculated-field"><label for="usageKwh"><span class="field-icon usage-icon" aria-hidden="true">💧</span>家庭消費量 <span>kWh・自動計算</span></label><input id="usageKwh" name="usageKwh" type="number" readonly aria-label="自動計算された家庭消費量" placeholder="自動計算" /></div>
+              <div class="field"><label for="billYen"><span class="field-icon bill-icon" aria-hidden="true">🧾</span>電気料金 <span>円</span></label><input id="billYen" name="billYen" type="number" min="0" step="1" inputmode="numeric" placeholder="例 8400" /></div>
+              <div class="field"><label for="revenueYen"><span class="field-icon revenue-icon" aria-hidden="true">💴</span>売電収入 <span>円</span></label><input id="revenueYen" name="revenueYen" type="number" min="0" step="1" inputmode="numeric" placeholder="例 109" /></div>
+              <div class="field"><label for="basicChargeYen"><span class="field-icon bill-icon" aria-hidden="true">📄</span>基本料金 <span>円/月</span></label><input id="basicChargeYen" name="basicChargeYen" type="number" min="0" step="1" inputmode="numeric" placeholder="例 1500" /></div>
+              <div class="field"><label for="weekdayDayRateYen"><span class="field-icon bought-icon" aria-hidden="true">☀️</span>平日昼の単価 <span>円/kWh</span></label><input id="weekdayDayRateYen" name="weekdayDayRateYen" type="number" min="0" step="0.01" inputmode="decimal" placeholder="例 35.00" /></div>
+              <div class="field"><label for="holidayRateYen"><span class="field-icon sold-icon" aria-hidden="true">🏖️</span>休日の単価 <span>円/kWh</span></label><input id="holidayRateYen" name="holidayRateYen" type="number" min="0" step="0.01" inputmode="decimal" placeholder="例 25.00" /></div>
+            </div>
+            <div class="form-actions"><button class="primary-button" type="submit" id="save-button">記録を保存</button><button class="text-button" type="button" id="cancel-edit" hidden>編集をキャンセル</button></div>
+          </form>
+          <p class="privacy-note">未入力の月には過去の最新値を適用します。節約額は平日昼と休日の単価を、平日・土日の日数で按分して概算します（祝日は平日扱い）。基本料金は計算に含めません。入力データはこのブラウザーに保存されます。</p>
+        </section>
+
+        <section class="panel import-panel" aria-labelledby="import-title">
+          <div class="panel-heading">
+            <div><p class="eyebrow">IMPORT & EXPORT</p><h2 id="import-title">ファイルから読み込む</h2></div>
+            <span class="file-icon" aria-hidden="true">📂</span>
+          </div>
+          <p class="import-copy">過去の電力データをCSVまたはJSONからまとめて追加できます。</p>
+          <label class="upload-button" for="file-input"><span aria-hidden="true">📥</span>ファイルを選択<input id="file-input" type="file" accept=".csv,.json,text/csv,application/json" /></label>
+          <p class="file-types">対応形式：CSV / JSON</p>
+          <div class="import-actions">
+            <button type="button" class="secondary-button" id="download-csv">CSVひな形</button>
+            <button type="button" class="secondary-button" id="download-json">JSONひな形</button>
+          </div>
+          <div class="export-actions"><span>保存済みデータを書き出す</span><button type="button" class="secondary-button" id="export-csv">CSV</button><button type="button" class="secondary-button" id="export-json">JSON</button></div>
+          <details class="format-help">
+            <summary>ファイルの形式を確認</summary>
+            <p>CSVは1行目を見出しにし、対象月は <code>date</code>（YYYY-MM または YYYY/M。例：2025/1）で指定します。電力量はkWh、料金は円です。以前の日別データ（YYYY-MM-DD）を読み込むと月ごとに合算します。</p>
+            <p>CSVのひな形には対象月・発電量・売電量・買電量・料金・基本料金・平日昼単価・休日単価の列があります。家庭消費量は発電量 − 売電量 ＋ 買電量で計算します。旧形式の <code>usageKwh</code> 列も読み込めます。</p>
+            <p>JSONはレコードの配列、または <code>{"records":[...]}</code> の形式です。見出しは日本語でも読み込めます。</p>
+          </details>
+          <p class="import-status" id="import-status" role="status" aria-live="polite"></p>
+        </section>
+      </div>
+
+      <section class="panel records-panel" aria-labelledby="records-title">
+        <div class="panel-heading records-heading">
+          <div><p class="eyebrow">SAVED RECORDS</p><h2 id="records-title">月ごとの記録</h2></div>
+          <label class="month-picker">表示月
+            <select id="month-select" aria-label="表示月"></select>
+          </label>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>対象月</th><th>発電</th><th>家庭消費</th><th>売電</th><th>買電</th><th>電気料金</th><th>売電収入</th><th>基本料金</th><th>平日昼単価</th><th>休日単価</th><th aria-label="操作"></th></tr></thead>
+            <tbody id="records-body"></tbody>
+          </table>
+          <div id="records-empty" class="empty-state" hidden><span>▤</span><strong>この期間の記録はまだありません</strong><small>月ごとの数値を入力するか、CSV・JSONファイルを読み込んでください。</small></div>
+        </div>
+        <p class="table-note">同じ年月を保存・読み込むと、その月の記録を更新します。*は未入力月に過去の最新値を適用した項目です。日別のCSV/JSONは対象月ごとに合算されます。</p>
+      </section>
+
+      <footer class="footer"><span>くらし電力 <i>·</i> 自分のペースで記録して、前年と比べる。</span><span>すべての値は入力・読み込みデータに基づきます。</span></footer>
+    </main>
+  </body>
+</html>
