@@ -88,7 +88,8 @@ h2 { margin: 0; color: #34443a; font-size: 15px; font-weight: 600; }
 .impact-card { background: linear-gradient(135deg, #fff 0%, #f7fbf6 100%); }
 .impact-card:hover { transform: translateY(-3px); border-color: #dce8dd; box-shadow: 0 9px 22px rgba(43, 82, 54, .08); }
 .impact-card .summary-icon { background: #edf6ef; }
-.all-time-summary { margin-top: 17px; padding-top: 2px; border-top: 1px solid #e9eee9; }
+.all-time-summary { margin-top: 0; padding-top: 0; border-top: 0; }
+.annual-summary { margin-bottom: 14px; }
 .all-time-grid .metric-card { min-height: 100px; }
 .metric-card:nth-child(2) { animation-delay: .05s; }
 .metric-card:nth-child(3) { animation-delay: .1s; }
@@ -128,9 +129,9 @@ h2 { margin: 0; color: #34443a; font-size: 15px; font-weight: 600; }
 .plot-area { position: relative; flex: 1; min-width: 0; }
 .grid-lines { position: absolute; inset: 3px 0 21px; display: flex; flex-direction: column; justify-content: space-between; }
 .grid-lines i { border-top: 1px dashed #edf0ec; }
-#year-chart { width: 100%; height: calc(100% - 21px); position: absolute; inset: 0 0 21px; transform-origin: center bottom; }
-#year-chart.chart-rise { animation: chart-rise .9s cubic-bezier(.2, .75, .25, 1) both; }
-.x-axis { position: absolute; inset: auto 0 0; display: flex; justify-content: space-around; color: #77847a; font-size: 10px; }
+#year-chart, #all-time-chart { width: 100%; height: calc(100% - 21px); position: absolute; inset: 0 0 21px; transform-origin: center bottom; }
+#year-chart.chart-rise, #all-time-chart.chart-rise { animation: chart-rise .9s cubic-bezier(.2, .75, .25, 1) both; }
+.x-axis { position: absolute; inset: auto 0 0; display: flex; justify-content: space-between; color: #77847a; font-size: 10px; }
 .chart-empty { margin: 2px 0 9px; color: #718076; font-size: 12px; text-align: center; }
 
 .workspace-grid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(300px, .9fr); gap: 14px; align-items: start; }
@@ -205,7 +206,7 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
-  #year-chart.chart-rise { animation: none; }
+  #year-chart.chart-rise, #all-time-chart.chart-rise { animation: none; }
 }
 
 @media (max-width: 900px) {
@@ -232,6 +233,7 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
   .form-grid { gap: 10px 8px; }
   .chart-panel { margin-top: 12px; }
   .chart-wrap { height: 155px; }
+  .x-axis span:nth-child(even) { display: none; }
   .metric-picker { gap: 5px; font-size: 10px; }
   .metric-picker select { min-width: 110px; height: 34px; font-size: 10px; }
   .records-panel { padding-right: 0; padding-left: 0; }

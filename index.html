@@ -36,7 +36,40 @@
         </div>
       </section>
 
-      <section class="summary-section" aria-labelledby="summary-title">
+      <section class="summary-section all-time-summary" aria-labelledby="all-time-title">
+        <div class="subsection-heading">
+          <div><p class="eyebrow">ALL-TIME TOTAL</p><h3 id="all-time-title">全期間サマリー</h3></div>
+          <p id="all-time-caption" class="section-note"></p>
+        </div>
+        <div class="metric-grid all-time-grid" id="all-time-grid" aria-live="polite"></div>
+      </section>
+
+      <section class="panel chart-panel all-time-chart-panel" aria-labelledby="all-time-chart-title">
+        <div class="panel-heading">
+          <div><p class="eyebrow">ALL-TIME TREND</p><h2 id="all-time-chart-title">全期間の年間推移</h2></div>
+          <label class="metric-picker">表示項目
+            <select id="all-time-metric-select" aria-label="全期間グラフの表示項目">
+              <option value="solarKwh">太陽光発電量</option>
+              <option value="usageKwh">家庭消費量</option>
+              <option value="soldKwh">売電量</option>
+              <option value="boughtKwh">買電量</option>
+              <option value="billYen">電気料金</option>
+              <option value="revenueYen">売電収入</option>
+            </select>
+          </label>
+        </div>
+        <div class="chart-wrap">
+          <div class="y-axis" id="all-time-y-axis-labels" aria-hidden="true"></div>
+          <div class="plot-area">
+            <div class="grid-lines" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+            <canvas id="all-time-chart" role="img" aria-label="全期間の年間推移"></canvas>
+            <div class="x-axis" id="all-time-x-axis" aria-hidden="true"></div>
+          </div>
+        </div>
+        <p id="all-time-chart-empty" class="chart-empty" hidden>選択した項目の記録がありません。</p>
+      </section>
+
+      <section class="summary-section annual-summary" aria-labelledby="summary-title">
         <div class="section-heading">
           <div><p class="eyebrow">YEAR AT A GLANCE</p><h2 id="summary-title">年間サマリー</h2></div>
           <p id="comparison-caption" class="section-note">前年の同じ期間と比較</p>
@@ -45,16 +78,8 @@
         <section class="solar-impact" aria-labelledby="solar-impact-title">
           <div class="subsection-heading">
             <div><p class="eyebrow">SOLAR IMPACT</p><h3 id="solar-impact-title">太陽光発電による効果</h3></div>
-            <p class="section-note">平日昼・休日単価で試算。基本料金を除いた概算です</p>
           </div>
           <div class="impact-grid" id="solar-impact-grid" aria-live="polite"></div>
-        </section>
-        <section class="all-time-summary" aria-labelledby="all-time-title">
-          <div class="subsection-heading">
-            <div><p class="eyebrow">ALL-TIME TOTAL</p><h3 id="all-time-title">全期間サマリー</h3></div>
-            <p id="all-time-caption" class="section-note"></p>
-          </div>
-          <div class="metric-grid all-time-grid" id="all-time-grid" aria-live="polite"></div>
         </section>
       </section>
 
@@ -78,7 +103,7 @@
           <div class="plot-area">
             <div class="grid-lines" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
             <canvas id="year-chart" role="img" aria-label="月ごとの前年比較"></canvas>
-            <div class="x-axis" aria-hidden="true"><span>1月</span><span>3月</span><span>5月</span><span>7月</span><span>9月</span><span>11月</span></div>
+            <div class="x-axis" aria-hidden="true"><span>1月</span><span>2月</span><span>3月</span><span>4月</span><span>5月</span><span>6月</span><span>7月</span><span>8月</span><span>9月</span><span>10月</span><span>11月</span><span>12月</span></div>
           </div>
         </div>
         <p id="chart-empty" class="chart-empty" hidden>比較できるデータがありません。記録を入力するか、ファイルを読み込んでください。</p>

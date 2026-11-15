@@ -38,6 +38,8 @@ const recordsBody = document.querySelector("#records-body");
 const statusMessage = document.querySelector("#import-status");
 const canvas = document.querySelector("#year-chart");
 const context = canvas.getContext("2d");
+const allTimeCanvas = document.querySelector("#all-time-chart");
+const allTimeContext = allTimeCanvas.getContext("2d");
 let records = loadRecords();
 let editingDate = null;
 let editingLegacyUsage = null;
@@ -150,6 +152,10 @@ function selectedMetric() {
   return FIELDS.find((field) => field.key === document.querySelector("#metric-select").value) ?? FIELDS[0];
 }
 
+function selectedAllTimeMetric() {
+  return FIELDS.find((field) => field.key === document.querySelector("#all-time-metric-select").value) ?? FIELDS[0];
+}
+
 function recordsInYear(year) {
   return records.filter((record) => Number(record.date.slice(0, 4)) === year);
 }
@@ -171,11 +177,15 @@ function solarImpact(items) {
     record.solarKwh !== null && record.soldKwh !== null && record.soldKwh <= record.solarKwh
   );
   const generated = sumFor(completeRecords, "solarKwh");
+  const sold = sumFor(completeRecords, "soldKwh");
   const selfConsumed = generated === null
     ? null
-    : Math.round((generated - sumFor(completeRecords, "soldKwh")) * 100) / 100;
+    : Math.round((generated - sold) * 100) / 100;
   const selfConsumptionRate = generated > 0 && selfConsumed !== null
     ? (selfConsumed / generated) * 100
+    : null;
+  const soldRate = generated > 0 && sold !== null
+    ? (sold / generated) * 100
     : null;
   const ratesByDate = recordsWithEffectiveRates(items);
   let estimatedSavings = 0;
@@ -197,7 +207,7 @@ function solarImpact(items) {
     estimatedMonths += 1;
   });
   const estimatedSavingsYen = estimatedMonths ? Math.round(estimatedSavings) : null;
-  return { selfConsumed, selfConsumptionRate, estimatedSavingsYen };
+  return { selfConsumed, selfConsumptionRate, soldRate, estimatedSavingsYen };
 }
 
 function recordsWithEffectiveRates(items) {
@@ -277,9 +287,14 @@ function renderSummary() {
   const year = currentYear();
   const currentRecords = recordsInYear(year);
   const previousRecords = recordsInYear(year - 1);
+  const impact = solarImpact(currentRecords);
+  const annualRevenue = sumFor(currentRecords, "revenueYen");
+  const annualSolarBenefit = impact.estimatedSavingsYen !== null && annualRevenue !== null
+    ? impact.estimatedSavingsYen + annualRevenue
+    : null;
   document.querySelector("#comparison-caption").textContent = `${year - 1}年との比較`;
   const grid = document.querySelector("#metric-grid");
-  grid.innerHTML = FIELDS.map((field) => {
+  const fieldCards = FIELDS.map((field) => {
     const current = sumFor(currentRecords, field.key);
     const previous = sumFor(previousRecords, field.key);
     let comparison = "前年のデータなし";
@@ -298,18 +313,18 @@ function renderSummary() {
     }
     return `<article class="metric-card metric-${field.key}"><div class="metric-card-heading"><span class="summary-icon" aria-hidden="true">${FIELD_ICONS[field.key]}</span><p class="metric-label">${field.label}</p></div><p class="metric-value">${formatNumber(current, field.kind)}<small>${field.unit}</small></p><p class="metric-compare">${comparison}</p></article>`;
   }).join("");
+  const solarBenefitCards = [
+    { icon: "💡", label: "概算節約額", value: impact.estimatedSavingsYen, description: "太陽光の自家消費による概算" },
+    { icon: "✨", label: "売電収入＋節約額 合計", value: annualSolarBenefit, description: "売電収入を含む概算合計" },
+  ].map((item) =>
+    `<article class="metric-card"><div class="metric-card-heading"><span class="summary-icon" aria-hidden="true">${item.icon}</span><p class="metric-label">${item.label}</p></div><p class="metric-value">${formatNumber(item.value, "money")}<small>${item.value === null ? "" : "円"}</small></p><p class="metric-compare">${item.description}</p></article>`
+  ).join("");
+  grid.innerHTML = fieldCards + solarBenefitCards;
 
-  const impact = solarImpact(currentRecords);
-  const annualRevenue = sumFor(currentRecords, "revenueYen");
-  const annualSolarBenefit = impact.estimatedSavingsYen !== null && annualRevenue !== null
-    ? impact.estimatedSavingsYen + annualRevenue
-    : null;
   document.querySelector("#solar-impact-grid").innerHTML = [
     { icon: "🏠", label: "太陽光の自家消費量", value: impact.selfConsumed, unit: "kWh", kind: "energy" },
     { icon: "🌿", label: "発電量に占める自家消費の割合", value: impact.selfConsumptionRate, unit: "%", kind: "percent" },
-    { icon: "💡", label: "概算節約額", value: impact.estimatedSavingsYen, unit: "円", kind: "money" },
-    { icon: "💴", label: "太陽光の売電収入", value: annualRevenue, unit: "円", kind: "money" },
-    { icon: "✨", label: "売電収入＋節約額 合計", value: annualSolarBenefit, unit: "円", kind: "money" },
+    { icon: "📤", label: "発電量に占める売電の割合", value: impact.soldRate, unit: "%", kind: "percent" },
   ].map((item) => `<article class="impact-card"><div class="metric-card-heading"><span class="summary-icon" aria-hidden="true">${item.icon}</span><p class="metric-label">${item.label}</p></div><p class="metric-value">${item.value === null ? "—" : formatNumber(item.value, item.kind)}<small>${item.value === null ? "" : item.unit}</small></p></article>`).join("");
 
   const allTimeImpact = solarImpact(records);
@@ -344,7 +359,7 @@ function renderRecords() {
   const month = document.querySelector("#month-select").value;
   const visible = records
     .filter((record) => record.date.startsWith(String(year)) && (month === "all" || record.date.slice(5, 7) === month))
-    .sort((a, b) => b.date.localeCompare(a.date));
+    .sort((a, b) => a.date.localeCompare(b.date));
   const effectiveRates = recordsWithEffectiveRates(visible);
   document.querySelector("#records-empty").hidden = visible.length > 0;
   recordsBody.innerHTML = visible.map((record) => {
@@ -367,12 +382,14 @@ function monthValues(year, key) {
 }
 
 function renderChart() {
-  const rect = canvas.getBoundingClientRect();
-  if (!rect.width || !rect.height) return;
+  const plotRect = canvas.parentElement.getBoundingClientRect();
+  const width = plotRect.width;
+  const height = plotRect.height - 21;
+  if (!width || !height) return;
   canvas.classList.remove("chart-rise");
   const ratio = window.devicePixelRatio || 1;
-  canvas.width = Math.round(rect.width * ratio);
-  canvas.height = Math.round(rect.height * ratio);
+  canvas.width = Math.round(width * ratio);
+  canvas.height = Math.round(height * ratio);
   context.setTransform(ratio, 0, 0, ratio, 0, 0);
 
   const year = currentYear();
@@ -385,8 +402,6 @@ function renderChart() {
   document.querySelector("#current-year-legend").textContent = `${year}年`;
   document.querySelector("#previous-year-legend").textContent = `${year - 1}年`;
 
-  const width = rect.width;
-  const height = rect.height;
   const maxValue = empty ? 1 : Math.max(...values, 1);
   const step = maxValue <= 10 ? 2 : maxValue <= 100 ? 20 : maxValue <= 1000 ? 200 : 1000;
   const axisTop = Math.ceil(maxValue / step) * step || step;
@@ -424,12 +439,78 @@ function renderChart() {
   canvas.title = `${year}年と${year - 1}年の${field.label}を月ごとに比較`;
 }
 
+function renderAllTimeChart() {
+  const plotRect = allTimeCanvas.parentElement.getBoundingClientRect();
+  const width = plotRect.width;
+  const height = plotRect.height - 21;
+  if (!width || !height) return;
+  allTimeCanvas.classList.remove("chart-rise");
+  const ratio = window.devicePixelRatio || 1;
+  allTimeCanvas.width = Math.round(width * ratio);
+  allTimeCanvas.height = Math.round(height * ratio);
+  allTimeContext.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+  const field = selectedAllTimeMetric();
+  const recordYears = records.map((record) => Number(record.date.slice(0, 4)));
+  const years = recordYears.length
+    ? Array.from({ length: Math.max(...recordYears) - Math.min(...recordYears) + 1 }, (_, index) => Math.min(...recordYears) + index)
+    : [];
+  const values = years.map((year) => sumFor(recordsInYear(year), field.key));
+  const availableValues = values.filter((value) => value !== null);
+  const empty = availableValues.length === 0;
+  allTimeCanvas.title = `全期間の${field.label}の年間合計推移`;
+  document.querySelector("#all-time-chart-empty").hidden = !empty;
+  document.querySelector("#all-time-y-axis-labels").innerHTML = "";
+  document.querySelector("#all-time-x-axis").innerHTML = "";
+
+  const maxValue = empty ? 1 : Math.max(...availableValues, 1);
+  const step = maxValue <= 10 ? 2 : maxValue <= 100 ? 20 : maxValue <= 1000 ? 200 : 1000;
+  const axisTop = Math.ceil(maxValue / step) * step || step;
+  const decimals = field.kind === "money" ? 0 : 1;
+  document.querySelector("#all-time-y-axis-labels").innerHTML = [axisTop, axisTop * .75, axisTop * .5, axisTop * .25, 0]
+    .map((value) => `<span>${new Intl.NumberFormat("ja-JP", { maximumFractionDigits: decimals }).format(value)}${field.unit}</span>`)
+    .join("");
+
+  allTimeContext.clearRect(0, 0, width, height);
+  if (empty) return;
+  const labelLimit = Math.max(2, Math.floor(width / 60));
+  const labelStep = Math.max(1, Math.ceil(years.length / labelLimit));
+  const tickIndexes = new Set([0, years.length - 1]);
+  years.forEach((_, index) => {
+    if (index % labelStep === 0) tickIndexes.add(index);
+  });
+  document.querySelector("#all-time-x-axis").innerHTML = [...tickIndexes]
+    .sort((a, b) => a - b)
+    .map((index) => `<span>${years[index]}年</span>`)
+    .join("");
+
+  const top = 7;
+  const bottom = 5;
+  const plotHeight = height - top - bottom;
+  const groupWidth = width / years.length;
+  const barWidth = Math.max(1, Math.min(18, groupWidth * .55));
+  allTimeContext.fillStyle = "#65a57b";
+  values.forEach((value, index) => {
+    if (value === null) return;
+    const barHeight = Math.max(1, (value / axisTop) * plotHeight);
+    const center = groupWidth * (index + .5);
+    allTimeContext.beginPath();
+    allTimeContext.roundRect(center - barWidth / 2, height - bottom - barHeight, barWidth, barHeight, [3, 3, 0, 0]);
+    allTimeContext.fill();
+  });
+  if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    void allTimeCanvas.offsetWidth;
+    allTimeCanvas.classList.add("chart-rise");
+  }
+}
+
 function refresh() {
   fillYearSelect();
   fillMonthSelect();
   renderSummary();
   renderRecords();
   renderChart();
+  renderAllTimeChart();
 }
 
 function showPeriodFor(date, month = "all") {
@@ -667,6 +748,7 @@ document.querySelector("#year-select").addEventListener("change", () => {
 });
 document.querySelector("#month-select").addEventListener("change", renderRecords);
 document.querySelector("#metric-select").addEventListener("change", renderChart);
+document.querySelector("#all-time-metric-select").addEventListener("change", renderAllTimeChart);
 document.querySelector("#download-csv").addEventListener("click", () => {
   const inputFields = FIELDS.filter((field) => field.key !== "usageKwh");
   downloadFile("kurashi-denki-template.csv", `date,${[...inputFields, ...RATE_FIELDS].map(({ key }) => key).join(",")}\r\n`, "text/csv;charset=utf-8");
@@ -674,7 +756,10 @@ document.querySelector("#download-csv").addEventListener("click", () => {
 document.querySelector("#download-json").addEventListener("click", () => {
   downloadFile("kurashi-denki-template.json", JSON.stringify({ records: [] }, null, 2), "application/json");
 });
-window.addEventListener("resize", renderChart);
+window.addEventListener("resize", () => {
+  renderChart();
+  renderAllTimeChart();
+});
 window.addEventListener("storage", (event) => {
   if (event.key !== STORAGE_KEY) return;
   records = loadRecords();
