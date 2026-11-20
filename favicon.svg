@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="20" fill="#2f7955" />
+  <defs>
+    <linearGradient id="bolt-fill" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff59d" />
+      <stop offset=".42" stop-color="#ffcf33" />
+      <stop offset="1" stop-color="#f57c00" />
+    </linearGradient>
+    <linearGradient id="bolt-highlight" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".8" />
+      <stop offset="1" stop-color="#fff" stop-opacity="0" />
+    </linearGradient>
+    <path id="bolt-shape" d="M38 7 16 35c-1.1 1.5 0 3.6 1.8 3.6h11l-4.2 17.8c-.5 2.3 2.3 3.7 3.8 1.9l21-28c1.1-1.5 0-3.6-1.8-3.6H36.5l4-17.5C41 6.8 39.4 6 38 7Z" />
+    <clipPath id="bolt-clip">
+      <use href="#bolt-shape" />
+    </clipPath>
+  </defs>
+  <use href="#bolt-shape" fill="url(#bolt-fill)" stroke="#d97706" stroke-width="1.5" stroke-linejoin="round" />
+  <g clip-path="url(#bolt-clip)">
+    <path d="m37.5 10-17 24h4.2l14-20z" fill="url(#bolt-highlight)" />
+    <path d="m33 35-5.3 20.4L47 32.8H36.7z" fill="#d97706" opacity=".2" />
+  </g>
+</svg>
