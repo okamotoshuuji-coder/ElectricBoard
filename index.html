@@ -56,6 +56,8 @@
               <option value="boughtKwh">買電量</option>
               <option value="billYen">電気料金</option>
               <option value="revenueYen">売電収入</option>
+              <option value="estimatedSavingsYen">概算節約額</option>
+              <option value="solarBenefitYen">売電収入＋節約額 合計</option>
             </select>
           </label>
         </div>
@@ -76,12 +78,6 @@
           <p id="comparison-caption" class="section-note">前年の同じ期間と比較</p>
         </div>
         <div class="metric-grid" id="metric-grid" aria-live="polite"></div>
-        <section class="solar-impact" aria-labelledby="solar-impact-title">
-          <div class="subsection-heading">
-            <div><p class="eyebrow">SOLAR IMPACT</p><h3 id="solar-impact-title">太陽光発電による効果</h3></div>
-          </div>
-          <div class="impact-grid" id="solar-impact-grid" aria-live="polite"></div>
-        </section>
       </section>
 
       <section class="panel chart-panel" aria-labelledby="chart-title">
@@ -95,6 +91,8 @@
               <option value="boughtKwh">買電量</option>
               <option value="billYen">電気料金</option>
               <option value="revenueYen">売電収入</option>
+              <option value="estimatedSavingsYen">概算節約額</option>
+              <option value="solarBenefitYen">売電収入＋節約額 合計</option>
             </select>
           </label>
         </div>
@@ -108,6 +106,17 @@
           </div>
         </div>
         <p id="chart-empty" class="chart-empty" hidden>比較できるデータがありません。記録を入力するか、ファイルを読み込んでください。</p>
+      </section>
+
+      <section class="solar-impact" aria-labelledby="solar-impact-title">
+        <div class="subsection-heading">
+          <div><p class="eyebrow">SOLAR IMPACT</p><h3 id="solar-impact-title">太陽光発電による効果</h3></div>
+        </div>
+        <div class="impact-grid" id="solar-impact-grid" aria-live="polite"></div>
+      </section>
+
+      <section class="section-heading data-entry-heading" aria-labelledby="data-entry-title">
+        <div><p class="eyebrow">RECORD YOUR DATA</p><h2 id="data-entry-title">データを記録する</h2></div>
       </section>
 
       <div class="workspace-grid">

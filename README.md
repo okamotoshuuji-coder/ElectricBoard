@@ -18,7 +18,7 @@ A lightweight browser app for recording monthly household electricity data and r
 
 - 月ごとの発電量、売電量、買電量、電気料金などの記録・編集・削除
 - 発電量 − 売電量 ＋ 買電量による家庭消費量の自動計算
-- 年間サマリー、前年同期間との比較、全期間の年間推移
+- 年間サマリー・全期間サマリーの項目を選んで、それぞれの比較グラフを切り替え
 - 太陽光の自家消費量や割合、概算節約額の表示
 - CSV / JSON の読み込みと書き出し
 - スマートフォン・デスクトップ向けレイアウトと、動きを抑える設定への対応
@@ -65,7 +65,7 @@ No build step or package installation is required. Records are stored in the cur
 
 - Add, edit, and delete monthly generation, export, import, and electricity bill records
 - Automatically calculate household consumption as generation − exported energy + imported energy
-- View yearly summaries, year-over-year comparisons, and all-time yearly trends
+- Switch comparison charts by selecting a metric in the yearly or all-time summary
 - Review solar self-consumption, related percentages, and estimated savings
 - Import and export CSV / JSON data
 - Responsive desktop and mobile layouts, with support for reduced-motion preferences

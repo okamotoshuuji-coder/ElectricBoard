@@ -7,6 +7,11 @@ const FIELDS = [
   { key: "billYen", label: "電気料金", unit: "円", kind: "money" },
   { key: "revenueYen", label: "売電収入", unit: "円", kind: "money" },
 ];
+const CHART_FIELDS = [
+  ...FIELDS,
+  { key: "estimatedSavingsYen", label: "概算節約額", unit: "円", kind: "money" },
+  { key: "solarBenefitYen", label: "売電収入＋節約額 合計", unit: "円", kind: "money" },
+];
 const RATE_FIELDS = [
   { key: "basicChargeYen", label: "基本料金", unit: "円", kind: "money" },
   { key: "weekdayDayRateYen", label: "平日昼の単価", unit: "円/kWh", kind: "rate" },
@@ -149,11 +154,11 @@ function currentYear() {
 }
 
 function selectedMetric() {
-  return FIELDS.find((field) => field.key === document.querySelector("#metric-select").value) ?? FIELDS[0];
+  return CHART_FIELDS.find((field) => field.key === document.querySelector("#metric-select").value) ?? CHART_FIELDS[0];
 }
 
 function selectedAllTimeMetric() {
-  return FIELDS.find((field) => field.key === document.querySelector("#all-time-metric-select").value) ?? FIELDS[0];
+  return CHART_FIELDS.find((field) => field.key === document.querySelector("#all-time-metric-select").value) ?? CHART_FIELDS[0];
 }
 
 function recordsInYear(year) {
@@ -170,6 +175,16 @@ function sumFor(items, key) {
     }
   }
   return count ? total : null;
+}
+
+function metricValue(items, key) {
+  if (key === "estimatedSavingsYen" || key === "solarBenefitYen") {
+    const savings = solarImpact(items).estimatedSavingsYen;
+    if (key === "estimatedSavingsYen") return savings;
+    const revenue = sumFor(items, "revenueYen");
+    return savings !== null && revenue !== null ? savings + revenue : null;
+  }
+  return sumFor(items, key);
 }
 
 function solarImpact(items) {
@@ -311,13 +326,13 @@ function renderSummary() {
     } else if (previous !== null) {
       comparison = "今年のデータなし";
     }
-    return `<article class="metric-card metric-${field.key}"><div class="metric-card-heading"><span class="summary-icon" aria-hidden="true">${FIELD_ICONS[field.key]}</span><p class="metric-label">${field.label}</p></div><p class="metric-value">${formatNumber(current, field.kind)}<small>${field.unit}</small></p><p class="metric-compare">${comparison}</p></article>`;
+    return `<article class="metric-card metric-selectable metric-${field.key}" role="button" tabindex="0" data-metric="${field.key}" aria-pressed="${document.querySelector("#metric-select").value === field.key}"><div class="metric-card-heading"><span class="summary-icon" aria-hidden="true">${FIELD_ICONS[field.key]}</span><p class="metric-label">${field.label}</p></div><p class="metric-value">${formatNumber(current, field.kind)}<small>${field.unit}</small></p><p class="metric-compare">${comparison}</p></article>`;
   }).join("");
   const solarBenefitCards = [
-    { icon: "💡", label: "概算節約額", value: impact.estimatedSavingsYen, description: "太陽光の自家消費による概算" },
-    { icon: "✨", label: "売電収入＋節約額 合計", value: annualSolarBenefit, description: "売電収入を含む概算合計" },
+    { key: "estimatedSavingsYen", icon: "💡", label: "概算節約額", value: impact.estimatedSavingsYen, description: "太陽光の自家消費による概算" },
+    { key: "solarBenefitYen", icon: "✨", label: "売電収入＋節約額 合計", value: annualSolarBenefit, description: "売電収入を含む概算合計" },
   ].map((item) =>
-    `<article class="metric-card"><div class="metric-card-heading"><span class="summary-icon" aria-hidden="true">${item.icon}</span><p class="metric-label">${item.label}</p></div><p class="metric-value">${formatNumber(item.value, "money")}<small>${item.value === null ? "" : "円"}</small></p><p class="metric-compare">${item.description}</p></article>`
+    `<article class="metric-card metric-selectable" role="button" tabindex="0" data-metric="${item.key}" aria-pressed="${document.querySelector("#metric-select").value === item.key}"><div class="metric-card-heading"><span class="summary-icon" aria-hidden="true">${item.icon}</span><p class="metric-label">${item.label}</p></div><p class="metric-value">${formatNumber(item.value, "money")}<small>${item.value === null ? "" : "円"}</small></p><p class="metric-compare">${item.description}</p></article>`
   ).join("");
   grid.innerHTML = fieldCards + solarBenefitCards;
 
@@ -333,12 +348,12 @@ function renderSummary() {
     ? allTimeImpact.estimatedSavingsYen + allTimeRevenue
     : null;
   const allTimeValues = [
-    ...FIELDS.map((field) => ({ icon: FIELD_ICONS[field.key], label: field.label, value: sumFor(records, field.key), unit: field.unit, kind: field.kind })),
-    { icon: "💡", label: "概算節約額", value: allTimeImpact.estimatedSavingsYen, unit: "円", kind: "money" },
-    { icon: "✨", label: "売電収入＋節約額 合計", value: allTimeSolarBenefit, unit: "円", kind: "money" },
+    ...FIELDS.map((field) => ({ key: field.key, icon: FIELD_ICONS[field.key], label: field.label, value: sumFor(records, field.key), unit: field.unit, kind: field.kind })),
+    { key: "estimatedSavingsYen", icon: "💡", label: "概算節約額", value: allTimeImpact.estimatedSavingsYen, unit: "円", kind: "money" },
+    { key: "solarBenefitYen", icon: "✨", label: "売電収入＋節約額 合計", value: allTimeSolarBenefit, unit: "円", kind: "money" },
   ];
   document.querySelector("#all-time-grid").innerHTML = allTimeValues.map((item) =>
-    `<article class="metric-card"><div class="metric-card-heading"><span class="summary-icon" aria-hidden="true">${item.icon}</span><p class="metric-label">${item.label}</p></div><p class="metric-value">${formatNumber(item.value, item.kind)}<small>${item.value === null ? "" : item.unit}</small></p></article>`
+    `<article class="metric-card metric-selectable" role="button" tabindex="0" data-metric="${item.key}" aria-pressed="${document.querySelector("#all-time-metric-select").value === item.key}"><div class="metric-card-heading"><span class="summary-icon" aria-hidden="true">${item.icon}</span><p class="metric-label">${item.label}</p></div><p class="metric-value">${formatNumber(item.value, item.kind)}<small>${item.value === null ? "" : item.unit}</small></p></article>`
   ).join("");
   const dates = records.map((record) => record.date).sort();
   document.querySelector("#all-time-caption").textContent = dates.length
@@ -377,11 +392,12 @@ function renderRecords() {
 function monthValues(year, key) {
   return Array.from({ length: 12 }, (_, index) => {
     const month = String(index + 1).padStart(2, "0");
-    return sumFor(records.filter((record) => record.date.startsWith(`${year}-${month}`)), key);
+    return metricValue(records.filter((record) => record.date.startsWith(`${year}-${month}`)), key);
   });
 }
 
 function renderChart() {
+  syncMetricCardSelection("#metric-grid", "#metric-select");
   const plotRect = canvas.parentElement.getBoundingClientRect();
   const width = plotRect.width;
   const height = plotRect.height - 21;
@@ -440,6 +456,7 @@ function renderChart() {
 }
 
 function renderAllTimeChart() {
+  syncMetricCardSelection("#all-time-grid", "#all-time-metric-select");
   const plotRect = allTimeCanvas.parentElement.getBoundingClientRect();
   const width = plotRect.width;
   const height = plotRect.height - 21;
@@ -455,7 +472,7 @@ function renderAllTimeChart() {
   const years = recordYears.length
     ? Array.from({ length: Math.max(...recordYears) - Math.min(...recordYears) + 1 }, (_, index) => Math.min(...recordYears) + index)
     : [];
-  const values = years.map((year) => sumFor(recordsInYear(year), field.key));
+  const values = years.map((year) => metricValue(recordsInYear(year), field.key));
   const availableValues = values.filter((value) => value !== null);
   const empty = availableValues.length === 0;
   allTimeCanvas.title = `全期間の${field.label}の年間合計推移`;
@@ -502,6 +519,13 @@ function renderAllTimeChart() {
     void allTimeCanvas.offsetWidth;
     allTimeCanvas.classList.add("chart-rise");
   }
+}
+
+function syncMetricCardSelection(gridSelector, selectSelector) {
+  const selected = document.querySelector(selectSelector).value;
+  document.querySelectorAll(`${gridSelector} [data-metric]`).forEach((card) => {
+    card.setAttribute("aria-pressed", String(card.dataset.metric === selected));
+  });
 }
 
 function refresh() {
@@ -749,6 +773,25 @@ document.querySelector("#year-select").addEventListener("change", () => {
 document.querySelector("#month-select").addEventListener("change", renderRecords);
 document.querySelector("#metric-select").addEventListener("change", renderChart);
 document.querySelector("#all-time-metric-select").addEventListener("change", renderAllTimeChart);
+function bindMetricCards(gridSelector, selectSelector, render) {
+  const grid = document.querySelector(gridSelector);
+  const selectMetric = (card) => {
+    document.querySelector(selectSelector).value = card.dataset.metric;
+    render();
+  };
+  grid.addEventListener("click", (event) => {
+    const card = event.target.closest("[data-metric]");
+    if (card && grid.contains(card)) selectMetric(card);
+  });
+  grid.addEventListener("keydown", (event) => {
+    const card = event.target.closest("[data-metric]");
+    if (!card || !grid.contains(card) || (event.key !== "Enter" && event.key !== " ")) return;
+    event.preventDefault();
+    selectMetric(card);
+  });
+}
+bindMetricCards("#metric-grid", "#metric-select", renderChart);
+bindMetricCards("#all-time-grid", "#all-time-metric-select", renderAllTimeChart);
 document.querySelector("#download-csv").addEventListener("click", () => {
   const inputFields = FIELDS.filter((field) => field.key !== "usageKwh");
   downloadFile("kurashi-denki-template.csv", `date,${[...inputFields, ...RATE_FIELDS].map(({ key }) => key).join(",")}\r\n`, "text/csv;charset=utf-8");
